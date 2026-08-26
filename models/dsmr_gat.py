@@ -6,7 +6,6 @@ from torch_geometric.utils import softmax, add_self_loops
 
 
 class RelationDepthwiseAttention(MessagePassing):
-
     def __init__(self, in_dim, negative_slope=0.2, dropout=0.2):
         super().__init__(aggr="add", node_dim=0)
         self.attn = nn.Linear(2 * in_dim, 1, bias=False)
@@ -26,7 +25,6 @@ class RelationDepthwiseAttention(MessagePassing):
 
 
 class DSMRGATLayer(nn.Module):
-
     def __init__(self, in_dim, out_dim, dropout=0.2):
         super().__init__()
         self.attn_bond = RelationDepthwiseAttention(in_dim, dropout=dropout)

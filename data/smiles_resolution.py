@@ -72,13 +72,6 @@ def build_synonym_lookup(screened_compounds):
 
 
 def resolve_all_drug_smiles(final_dataset, screened_compounds):
-    """Resolves every unique DRUG_NAME in final_dataset to a SMILES string.
-
-    Tries the drug name directly, then each PubChem synonym, then a cleaned
-    version of the name, then a retry pass on anything still unresolved.
-    Bare numeric-CID names (NUMERIC_CID_EXCLUSIONS) are excluded rather than
-    guessed, since their structure cannot be independently verified.
-    """
     unique_drugs_df = final_dataset[["DRUG_ID", "DRUG_NAME"]].drop_duplicates(subset="DRUG_ID")
     drug_id_to_synonyms = build_synonym_lookup(screened_compounds)
     drug_name_to_id = dict(zip(unique_drugs_df["DRUG_NAME"], unique_drugs_df["DRUG_ID"]))

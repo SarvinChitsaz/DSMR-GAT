@@ -31,8 +31,7 @@ def summarize_seed_variance(r2_by_seed):
     }
 
 
-def mean_absolute_error_by_group(df, predicted_column, actual_column,
-                                  group_columns=("CANCER_TYPE", "DRUG_NAME"), min_count=3):
+def mean_absolute_error_by_group(df, predicted_column, actual_column, group_columns=("CANCER_TYPE", "DRUG_NAME"), min_count=3):
     df = df.copy()
     df["abs_error"] = (df[predicted_column] - df[actual_column]).abs()
 

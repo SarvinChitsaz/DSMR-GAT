@@ -26,10 +26,6 @@ class RelationDepthwiseAttention(MessagePassing):
 
 
 class DSMRGATLayer(nn.Module):
-    """One DSMR-GAT layer: three independent depthwise attention heads (bond,
-    ring, functional group) followed by a single shared pointwise layer that
-    fuses the three relation-specific outputs.
-    """
 
     def __init__(self, in_dim, out_dim, dropout=0.2):
         super().__init__()

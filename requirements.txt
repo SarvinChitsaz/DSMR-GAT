@@ -1,0 +1,12 @@
+torch>=2.0
+torch_geometric
+rdkit
+pandas
+numpy
+scikit-learn
+scipy
+matplotlib
+networkx
+Pillow
+pubchempy
+openpyxl

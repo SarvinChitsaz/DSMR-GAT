@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.nn import global_mean_pool, BatchNorm
-from models.dsmr_gat import RelationDepthwiseAttention, CellLineEncoder, SimpleFusion
+from models.deeprelcdr import RelationDepthwiseAttention, CellLineEncoder, SimpleFusion
 
 
-class DSMRGATLayerTwoRelation(nn.Module):
+class DeepRelCDRLayerTwoRelation(nn.Module):
     def __init__(self, in_dim, out_dim, dropout=0.2):
         super().__init__()
         self.attn_a = RelationDepthwiseAttention(in_dim, dropout=dropout)
@@ -19,12 +19,12 @@ class DSMRGATLayerTwoRelation(nn.Module):
         return self.pointwise(z)
 
 
-class DrugEncoderDSMR_TwoRelation(nn.Module):
+class DrugEncoderDeepRelCDR_TwoRelation(nn.Module):
     def __init__(self, input_dim, hidden_dim, dropout=0.2):
         super().__init__()
-        self.layer1 = DSMRGATLayerTwoRelation(input_dim, hidden_dim, dropout=dropout)
+        self.layer1 = DeepRelCDRLayerTwoRelation(input_dim, hidden_dim, dropout=dropout)
         self.bn1 = BatchNorm(hidden_dim)
-        self.layer2 = DSMRGATLayerTwoRelation(hidden_dim, hidden_dim, dropout=dropout)
+        self.layer2 = DeepRelCDRLayerTwoRelation(hidden_dim, hidden_dim, dropout=dropout)
         self.bn2 = BatchNorm(hidden_dim)
         self.dropout = nn.Dropout(dropout)
 
@@ -43,7 +43,7 @@ class DrugEncoderDSMR_TwoRelation(nn.Module):
 class DrugResponseModel_TwoRelation(nn.Module):
     def __init__(self, atom_feature_dim, gene_feature_dim, hidden_dim=128):
         super().__init__()
-        self.drug_encoder = DrugEncoderDSMR_TwoRelation(atom_feature_dim, hidden_dim)
+        self.drug_encoder = DrugEncoderDeepRelCDR_TwoRelation(atom_feature_dim, hidden_dim)
         self.cell_encoder = CellLineEncoder(gene_feature_dim, hidden_dim)
         self.fusion = SimpleFusion(hidden_dim)
         self.output_layer = nn.Linear(hidden_dim, 1)

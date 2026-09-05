@@ -25,13 +25,13 @@ from data.graph_utils import build_functional_group_patterns, build_all_drug_gra
 from data.dataset import DrugResponseDataset, collate_fn, split_by_cell_line
 
 from src.train import (
-    train_dsmrgat,
+    train_deeprelcdr,
     train_two_relation_ablation,
     train_single_relation_baseline,
     save_checkpoint,
     set_all_seeds,
 )
-from src.eval import evaluate_dsmrgat, evaluate_two_relation, evaluate_single_relation
+from src.eval import evaluate_deeprelcdr, evaluate_two_relation, evaluate_single_relation
 from src.metrics import bootstrap_r2_ci, summarize_seed_variance
 from src.relation_diagnostics import (
     diagnose_relation_density,
@@ -97,12 +97,12 @@ def run_pipeline():
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=collate_fn)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=collate_fn)
 
-    # 2. Train the full three-relation DSMR-GAT model ------------------------
-    model, optimizer = train_dsmrgat(train_loader, val_loader, seed=VARIANCE_SEEDS[0])
-    r2_full, preds_full, labels_full = evaluate_dsmrgat(model, test_loader)
-    print(f"DSMR-GAT Test R2: {r2_full:.4f}")
+    # 2. Train the full three-relation DeepRelCDR model ------------------------
+    model, optimizer = train_deeprelcdr(train_loader, val_loader, seed=VARIANCE_SEEDS[0])
+    r2_full, preds_full, labels_full = evaluate_deeprelcdr(model, test_loader)
+    print(f"DeepRelCDR Test R2: {r2_full:.4f}")
 
-    save_checkpoint(model, optimizer, r2_full, "drug_response_model_dsmr_gat.ckpt",
+    save_checkpoint(model, optimizer, r2_full, "drug_response_model_deeprelcdr.ckpt",
                      atom_feature_dim=ATOM_FEATURE_DIM, gene_feature_dim=GENE_FEATURE_DIM, hidden_dim=HIDDEN_DIM)
 
     bootstrap_scores, ci_lower, ci_upper = bootstrap_r2_ci(labels_full, preds_full)
@@ -138,8 +138,8 @@ def run_pipeline():
     r2_single_by_seed = {VARIANCE_SEEDS[0]: r2_single}
 
     for seed in VARIANCE_SEEDS[1:]:
-        m, _ = train_dsmrgat(train_loader, val_loader, seed=seed)
-        r2_full_by_seed[seed], _, _ = evaluate_dsmrgat(m, test_loader)
+        m, _ = train_deeprelcdr(train_loader, val_loader, seed=seed)
+        r2_full_by_seed[seed], _, _ = evaluate_deeprelcdr(m, test_loader)
 
         m, _ = train_two_relation_ablation("bond", "ring", train_loader, val_loader, seed=seed)
         r2_br_by_seed[seed], _, _ = evaluate_two_relation(m, test_loader, "bond", "ring")
@@ -152,7 +152,7 @@ def run_pipeline():
 
     seed_variance_summary = {
         "seeds_used": VARIANCE_SEEDS,
-        "full_dsmrgat": summarize_seed_variance(r2_full_by_seed),
+        "full_deeprelcdr": summarize_seed_variance(r2_full_by_seed),
         "bond_plus_ring": summarize_seed_variance(r2_br_by_seed),
         "bond_plus_fg": summarize_seed_variance(r2_bf_by_seed),
         "single_relation": summarize_seed_variance(r2_single_by_seed),

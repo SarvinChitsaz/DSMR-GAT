@@ -254,7 +254,7 @@ def plot_r2_comparison_bar(r2_bond_fg, r2_bond_ring, r2_full, r2_single_relation
                             ci_lower_full, ci_upper_full, save_path):
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    model_names = ["Bond + FG", "Bond + Ring", "Bond + Ring + FG\n(Full DSMR-GAT)", "Single-Relation\nGAT (Bond-only)"]
+    model_names = ["Bond + FG", "Bond + Ring", "Bond + Ring + FG\n(Full DeepRelCDR)", "Single-Relation\nGAT (Bond-only)"]
     r2_values = [r2_bond_fg, r2_bond_ring, r2_full, r2_single_relation]
     colors = ["#DD8452", "#4C72B0", "#2C4E7C", "#8C8C8C"]
     x_pos = np.arange(len(model_names))

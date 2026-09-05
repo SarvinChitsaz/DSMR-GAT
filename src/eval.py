@@ -3,7 +3,7 @@ from sklearn.metrics import r2_score
 from configs.config import DEVICE
 
 
-def evaluate_dsmrgat(model, test_loader):
+def evaluate_deeprelcdr(model, test_loader):
     model.eval()
     all_predictions = []
     all_labels = []
@@ -67,7 +67,7 @@ def evaluate_single_relation(model, test_loader):
     return test_r2, all_predictions, all_labels
 
 
-def load_dsmrgat_checkpoint(checkpoint_path, model_class, atom_feature_dim=20,
+def load_deeprelcdr_checkpoint(checkpoint_path, model_class, atom_feature_dim=20,
                              gene_feature_dim=1000, hidden_dim=128):
     model = model_class(
         atom_feature_dim=atom_feature_dim, gene_feature_dim=gene_feature_dim, hidden_dim=hidden_dim

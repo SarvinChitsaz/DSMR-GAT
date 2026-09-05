@@ -7,7 +7,7 @@ import random
 import numpy as np
 from sklearn.metrics import r2_score
 from configs.config import (LEARNING_RATE, WEIGHT_DECAY, MAX_EPOCHS, EARLY_STOPPING_PATIENCE, CHECKPOINT_DIR, DEVICE)
-from models.dsmr_gat import DrugResponseModelDSMRGAT, EarlyStopping
+from models.deeprelcdr import DrugResponseModelDeepRelCDR, EarlyStopping
 from models.ablation_models import DrugResponseModel_TwoRelation, DrugResponseModel_SingleRelation
 
 
@@ -19,13 +19,13 @@ def set_all_seeds(seed):
         torch.cuda.manual_seed_all(seed)
 
 
-def train_dsmrgat(train_loader, val_loader, atom_feature_dim=20, gene_feature_dim=1000,
+def train_deeprelcdr(train_loader, val_loader, atom_feature_dim=20, gene_feature_dim=1000,
                    hidden_dim=128, epochs=MAX_EPOCHS, seed=None):
-    """Trains the full three-relation DSMR-GAT model."""
+    """Trains the full three-relation DeepRelCDR model."""
     if seed is not None:
         set_all_seeds(seed)
 
-    model = DrugResponseModelDSMRGAT(
+    model = DrugResponseModelDeepRelCDR(
         atom_feature_dim=atom_feature_dim, gene_feature_dim=gene_feature_dim, hidden_dim=hidden_dim
     ).to(DEVICE)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)

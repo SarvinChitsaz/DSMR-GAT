@@ -1,4 +1,4 @@
-# DSMR-GAT
+# DeepRelCDR
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-red)
@@ -9,9 +9,9 @@
 Depthwise-separable multi-relation graph attention network for interpretable and personalized cancer drug response prediction on **GDSC2**.
 
 <p align="center">
-  <img src="assets/results/molecular_graphs/multi_relation_graph_combined_only.png" width="640">
+  <img src="assets/results/molecular_graphs/fg_pattern_verification_2rows.png" width="760">
 </p>
-<p align="center"><sub>Every drug is represented as three explicit chemical relations — covalent bonds, ring co-membership, and functional-group co-membership — instead of the single bond-only graph almost every prior model uses.</sub></p>
+<p align="center"><sub>Real functional-group SMARTS patterns verified directly on known drugs — the exact chemical logic DeepRelCDR uses to build its third molecular relation, alongside covalent bonds and ring membership.</sub></p>
 
 ---
 
@@ -19,10 +19,10 @@ Depthwise-separable multi-relation graph attention network for interpretable and
 
 Almost every graph neural network for drug response prediction represents a molecule the same way: atoms as nodes, covalent bonds as edges, one relation, one adjacency matrix. Two chemically important structural relationships — which atoms share a ring system, and which atoms co-occur in the same functional group — are left for the network to reconstruct indirectly, several message-passing hops deep, instead of being handed to it directly.
 
-DSMR-GAT gives the model all three relations explicitly, and does it without the parameter cost that naive multi-relational graph learning usually pays. Each relation is aggregated by its own lightweight, transform-free attention head operating directly on raw atom features (the *depthwise* stage); a single shared linear layer then mixes across all three relations at once (the *pointwise* stage). The decomposition is a direct structural analogue of depthwise-separable convolution — the same trick MobileNets used to make CNNs cheap — applied to the *relation* dimension of a molecular graph instead of the *channel* dimension of an image.
+DeepRelCDR gives the model all three relations explicitly, and does it without the parameter cost that naive multi-relational graph learning usually pays. Each relation is aggregated by its own lightweight, transform-free attention head operating directly on raw atom features (the *depthwise* stage); a single shared linear layer then mixes across all three relations at once (the *pointwise* stage). The decomposition is a direct structural analogue of depthwise-separable convolution — the same trick MobileNets used to make CNNs cheap — applied to the *relation* dimension of a molecular graph instead of the *channel* dimension of an image.
 
 ```text
-Drug SMILES → RDKit → Multi-relation graph (Bond + Ring + FG) → DSMR-GAT × 2 → Global mean pool ──┐
+Drug SMILES → RDKit → Multi-relation graph (Bond + Ring + FG) → DeepRelCDR × 2 → Global mean pool ──┐
                                                                                                      ├─▶ concat → MLP fusion → predicted LN_IC50
 Cell-line gene expression (1000-dim) → MLP encoder (2 layers) ────────────────────────────────────┘
 ```
@@ -31,7 +31,7 @@ Cell-line gene expression (1000-dim) → MLP encoder (2 layers) ─────�
 
 ## Why This Is More Than a Baseline R²
 
-- **A parameter-efficient way to add structure, not just a bigger model** — the naive way to add two more relations to a graph triples the per-relation transformation matrix; DSMR-GAT instead keeps the depthwise stage transform-free (2·*C*ᵢₙ parameters per relation) and defers all cross-relation mixing to one shared pointwise layer.
+- **A parameter-efficient way to add structure, not just a bigger model** — the naive way to add two more relations to a graph triples the per-relation transformation matrix; DeepRelCDR instead keeps the depthwise stage transform-free (2·*C*ᵢₙ parameters per relation) and defers all cross-relation mixing to one shared pointwise layer.
 - **The ablation isolates *why* it works, not just *that* it works** — removing the ring relation costs roughly 4.6× more accuracy than removing the functional-group relation, and every one of these gaps is checked against training-run noise (three independent seeds) rather than reported as a single lucky run.
 - **Two independent diagnostics agree the model actually uses all three relations** — attention-weighted output magnitude and pointwise fusion weight norm, computed two completely different ways on the trained model, both place bond/ring/functional-group within a narrow 31–36% band, with no relation dominating or collapsing to near-zero.
 - **A biological check the model was never trained on** — gradient-based gene attribution recovers **SLFN11**, an independently established biomarker for topoisomerase-inhibitor sensitivity, as the top-ranked gene for camptothecin response across three separate cancer types, with no supervision signal referencing SLFN11 anywhere in training.
@@ -79,7 +79,7 @@ Full hyperparameters: [`configs/config.py`](configs/config.py).
 
 | Metric | Value |
 |:---|:---|
-| Full DSMR-GAT (Bond+Ring+FG), Test R² | **0.7617** |
+| Full DeepRelCDR (Bond+Ring+FG), Test R² | **0.7617** |
 | 95% bootstrap CI (1,000 resamples) | [0.7555, 0.7686] |
 | Full model, mean ± SD across 3 seeds | 0.7619 ± 0.0030 |
 | Bond + Ring (FG removed) | 0.7529 |
@@ -87,7 +87,7 @@ Full hyperparameters: [`configs/config.py`](configs/config.py).
 | Single-relation GAT (bond-only baseline) | 0.7020 |
 
 <p align="center">
-  <img src="assets/results/ablation/fig_r2_comparison.png" width="480">
+  <img src="assets/results/ablation/fig_r2_comparison.png" width="420">
 </p>
 <p align="center"><sub>Test R² across all four configurations, with the 95% bootstrap CI on the full model.</sub></p>
 
@@ -103,7 +103,7 @@ Two metrics computed directly on the trained model, independent of the ablation 
 | Pointwise fusion weight norm | 36.2% | 32.4% | 31.4% |
 
 <p align="center">
-  <img src="assets/results/relation_diagnostics/fig_relation_contribution.png" width="520">
+  <img src="assets/results/relation_diagnostics/fig_relation_contribution.png" width="480">
 </p>
 <p align="center"><sub>Both diagnostics place all three relations within a narrow 31–36% band — no relation dominates or collapses to near-zero contribution.</sub></p>
 
@@ -122,7 +122,10 @@ Gradient-based attribution for camptothecin (a topoisomerase I inhibitor) ranks 
 </p>
 <p align="center"><sub>SLFN11 was never a training target — this is gradient attribution on a model trained only to predict LN_IC50.</sub></p>
 
-Atom-level attribution (per-atom ring-relation attention magnitude, overlaid on real molecular structures) is in [`assets/results/explainability/`](assets/results/explainability/).
+<p align="center">
+  <img src="assets/results/explainability/fig_node_importance_multi.png" width="680">
+</p>
+<p align="center"><sub>Per-atom output magnitude of the ring-relation attention branch, overlaid directly on real drug structures — darker atoms are weighted more heavily when the ring relation builds that drug's embedding.</sub></p>
 
 ### Error Analysis
 
@@ -148,11 +151,11 @@ For each of the 142 test-set cell lines screened against at least two drugs, the
 ## Project Structure
 
 ```text
-DSMR-GAT/
+DeepRel-CDR/
 ├── assets/results/     ablation, relation diagnostics, explainability, dashboard, error analysis, molecular graph figures
 ├── configs/             hyperparameters and paths
 ├── data/                 preprocessing, SMILES resolution, multi-relation graph construction, dataset class
-├── models/               DSMR-GAT architecture, ablation variants, checkpoints
+├── models/               DeepRelCDR architecture, ablation variants, checkpoints
 ├── src/                   training, evaluation, metrics, relation diagnostics, explainability, dashboard, visualization
 ├── main.py                end-to-end pipeline entry point
 └── requirements.txt
@@ -163,8 +166,8 @@ DSMR-GAT/
 ## Quickstart
 
 ```bash
-git clone https://github.com/SarvinChitsaz/DSMR-GAT.git
-cd DSMR-GAT
+git clone https://github.com/SarvinChitsaz/DeepRel-CDR.git
+cd DeepRel-CDR
 pip install -r requirements.txt
 ```
 
